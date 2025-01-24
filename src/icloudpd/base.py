@@ -64,7 +64,7 @@ from pyicloud_ipd.utils import (
     store_password_in_keyring,
 )
 from pyicloud_ipd.version_size import AssetVersionSize, LivePhotoVersionSize
-
+import glob
 
 def build_filename_cleaner(
     _ctx: click.Context, _param: click.Parameter, is_keep_unicode: bool
@@ -908,7 +908,8 @@ def download_builder(
                 )
                 return False
 
-            download_dir = os.path.normpath(os.path.join(directory, date_path))
+            #download_dir = os.path.normpath(os.path.join(directory, date_path))
+            download_dir = os.path.normpath(check_local_download_folder(directory, date_path))
             success = False
 
             for download_size in primary_sizes:
@@ -1040,6 +1041,17 @@ def download_builder(
 
     return state_
 
+def check_local_download_folder(
+        directory: str,
+        date_path: str
+) -> str:
+    """Attempt to find any folders with the date path at the start, before creating a new one. Any matches will take the first returned. """
+    # Checks the file system path for any folders that start with date_path and use those instead
+    matches = glob.glob(os.path.join(directory, date_path) + '*')
+    if matches != None and len(matches) > 0:
+        return matches[0]
+    # if we don't have any entries, then just return the directory concat with date_path as it did originally
+    return os.path.join(directory, date_path)
 
 def delete_photo(
     logger: logging.Logger,
